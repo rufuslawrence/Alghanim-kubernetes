@@ -1,0 +1,11 @@
+appVersion: 3.3.1
+description: Alfresco Syncservice
+engine: gotpl
+keywords:
+- syncservice
+- alfresco
+- application
+maintainers:
+- name: Alfresco Apps Repo Team
+name: alfresco-sync-service
+version: 3.0.2

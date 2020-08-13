@@ -1,0 +1,91 @@
+# Defines the properties required by the content repository
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # the name of the config map
+  name: {{ template "content-services.shortname" . }}-repository-configmap
+  labels:
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    component: repository
+data:
+  # The JAVA_OPTS defined in the values.yaml file for the "repository" are set here using proper quotes
+  {{- if .Values.repository.environment }}
+  {{- range $key, $val := .Values.repository.environment }}
+  {{ $key }}: {{ tpl $val $ | quote }}
+  {{- end }}
+  {{- end }}
+  RELEASE_NAME: {{ .Release.Name }}
+  {{ $alfhost := tpl (.Values.externalHost | default (printf "%s-repository" (include "content-services.shortname" .))) $ }}
+  {{ $alfprotocol := tpl (.Values.externalProtocol | default "http") $ }}
+  {{ $alfport := tpl ((.Values.externalPort | default .Values.repository.service.externalPort) | toString) $ }}
+  ALFRESCO_OPTS: " -Dalfresco.host={{ $alfhost }}
+      -Dalfresco.protocol={{ $alfprotocol }}
+      -Dalfresco.port={{ $alfport }}
+      {{ if or (eq $alfport "80") (eq $alfport "443") }}
+      -Daos.baseUrlOverwrite={{ $alfprotocol }}://{{ $alfhost }}/alfresco/aos
+      -Dcsrf.filter.origin={{ $alfprotocol }}://{{ $alfhost }}
+      -Dcsrf.filter.referer={{ $alfprotocol }}://{{ $alfhost }}/.*
+      {{ else }}
+      -Daos.baseUrlOverwrite={{ $alfprotocol }}://{{ $alfhost }}:{{ $alfport }}/alfresco/aos
+      -Dcsrf.filter.origin={{ $alfprotocol }}://{{ $alfhost }}:{{ $alfport }}
+      -Dcsrf.filter.referer={{ $alfprotocol }}://{{ $alfhost }}:{{ $alfport }}/.*
+      {{ end }}
+      -Dshare.protocol={{ tpl (.Values.externalProtocol | default "http") $ }}
+      -Dshare.host={{ tpl (.Values.externalHost | default (printf "%s-share" (include "content-services.shortname" .))) $ }}
+      -Dshare.port={{ tpl (.Values.externalPort | default .Values.share.service.externalPort | toString) $ }}
+      -Dalfresco_user_store.adminpassword={{ .Values.repository.adminPassword | default "209c6174da490caeb422f3fa5a7ae634" }}
+      {{- if index .Values "alfresco-search" "enabled" }}
+      -Dsolr.host={{ template "alfresco-search.host" . }}
+      -Dsolr.port={{ template "alfresco-search.port" . }}
+      {{- else }}
+      {{- if index .Values "alfresco-search" "external" }}
+      -Dsolr.host={{ index .Values "alfresco-search" "external" "host" }}
+      -Dsolr.port={{ index .Values "alfresco-search" "external" "port" }}
+      {{- end }}
+      {{- end }}
+      -Dtransform.service.url=http://{{ template "alfresco.shortname" . }}-router
+      -DlocalTransform.pdfrenderer.url=http://{{ template "content-services.shortname" . }}-pdfrenderer
+      -DlocalTransform.imagemagick.url=http://{{ template "content-services.shortname" . }}-imagemagick
+      -DlocalTransform.libreoffice.url=http://{{ template "content-services.shortname" . }}-libreoffice
+      -DlocalTransform.tika.url=http://{{ template "content-services.shortname" . }}-tika
+      -DlocalTransform.misc.url=http://{{ template "content-services.shortname" . }}-transform-misc
+      -Dalfresco-pdf-renderer.url=http://{{ template "content-services.shortname" . }}-pdfrenderer
+      -Dimg.url=http://{{ template "content-services.shortname" . }}-imagemagick
+      -Djodconverter.url=http://{{ template "content-services.shortname" . }}-libreoffice
+      -Dtika.url=http://{{ template "content-services.shortname" . }}-tika
+      -Dtransform.misc.url=http://{{ template "content-services.shortname" . }}-transform-misc
+      {{- if .Values.s3connector.enabled }}
+      {{- range $key, $val := .Values.s3connector.config }}
+      -Ds3.{{ $key }}={{ $val }}
+      {{- end }}
+      {{- end }}
+      -Dsfs.url=http://{{ template "alfresco.shortname" . }}-filestore:80
+      {{- if index .Values "alfresco-infrastructure" "activemq" "enabled" }}
+      -Dmessaging.broker.url=failover:(nio://{{ .Release.Name }}-activemq-broker:61616)?timeout=3000&jms.useCompression=true
+      -Dmessaging.broker.username={{ index .Values "alfresco-infrastructure" "activemq" "adminUser" "username" }}
+      -Dmessaging.broker.password={{ index .Values "alfresco-infrastructure" "activemq" "adminUser" "password" }}
+      {{- else }}
+      -Dmessaging.broker.url={{ .Values.messageBroker.url | default (printf "failover:(nio://%s-activemq-broker:61616)?timeout=3000&jms.useCompression=true" .Release.Name)}}
+      -Dmessaging.broker.username={{ .Values.messageBroker.user }}
+      -Dmessaging.broker.password={{ .Values.messageBroker.password }}
+      {{- end }}
+      {{- if index .Values "alfresco-sync-service" "enabled" }}
+      -Ddsync.service.uris={{ $alfprotocol }}://{{ $alfhost }}:{{ $alfport }}/syncservice
+      {{- else }}
+      -Devents.subsystem.autoStart=false
+      {{- end }}"
+  CATALINA_OPTS: " $ALFRESCO_OPTS  
+      -Ddb.driver={{ .Values.database.driver | default "org.postgresql.Driver" }}
+      {{- if eq .Values.database.external false }}
+      -Ddb.url=jdbc:postgresql://{{ printf "%s-%s" .Release.Name .Values.postgresql.nameOverride }}:{{ .Values.postgresql.service.port }}/{{ .Values.postgresql.postgresDatabase }}
+      {{- else }}
+      -Ddb.url={{ .Values.database.url }}
+      {{- end }}
+      -Ddb.username=$DATABASE_USERNAME
+      -Ddb.password=$DATABASE_PASSWORD
+      -Ds3.accessKey=$ACCESSKEY
+      -Ds3.secretKey=$SECRETKEY
+      -Ds3.encryption=$ENCRYPTION
+      -Ds3.awsKmsKeyId=$KMSKEYID"
