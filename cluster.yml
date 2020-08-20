@@ -1,11 +1,11 @@
 nodes:
-  - address: 18.217.217.24  
+  - address: 3.129.5.154  
     user: ubuntu
     role: [etcd,controlplane,worker]
     ssh_key_path: /home/dell/Downloads/Ohio.pem
 addon_job_timeout: 500
 services:
   kubelet:
-    image: rancher/hyperkube:v1.16.2-rancher1
+    image: rancher/hyperkube:v1.15.4-rancher1
     extra_binds:
         - "/mnt:/mnt"

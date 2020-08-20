@@ -43,6 +43,6 @@ livenessProbe:
   failureThreshold: 1
 
 persistence:
-  existingClaim: "alfresco-volume-claim"
+  existingClaim: "activiti-volume-claim"
   mountPath: "/opt/activemq/data"
   subPath: "alfresco-infrastructure/activemq-data"

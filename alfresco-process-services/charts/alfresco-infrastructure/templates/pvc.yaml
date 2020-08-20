@@ -2,7 +2,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: alfresco-volume-claim
+  name: activiti-volume-claim
 spec:
   {{ if .Values.persistence.storageClass.enabled }}
   accessModes:

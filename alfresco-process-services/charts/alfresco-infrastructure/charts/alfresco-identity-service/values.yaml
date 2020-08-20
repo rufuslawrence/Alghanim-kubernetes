@@ -103,7 +103,7 @@ keycloak:
     imageTag: "10.1"
     persistence:
       enabled: true
-      existingClaim: "alfresco-volume-claim"
+      existingClaim: "activiti-volume-claim"
       subPath: "alfresco-identity-service/database-data"
     resources:
       requests:

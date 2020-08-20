@@ -407,7 +407,7 @@ alfresco-search:
   # registryPullSecrets: "quay-registry-secret"
 
 alfresco-digital-workspace:
-  enabled: true
+  enabled: false
   ingress:
     path: /workspace
     applicationBasePath: ./
