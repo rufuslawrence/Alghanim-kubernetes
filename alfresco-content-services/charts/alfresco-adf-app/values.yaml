@@ -1,0 +1,98 @@
+global:
+  gateway:
+    ## Configure default domain for gateway host, i.e. "{{ .Relase.Name }}.127.0.0.1.nip.io"
+    domain: "REPLACEME"
+    ## Configure default gateway host Helm template, i.e. "activiti-cloud-gateway.{{ .Values.global.gateway.domain }}"
+    host: "activiti-cloud-gateway.{{ .Values.global.gateway.domain }}"
+    ## Toggle creating http or https ingress rules, supports literal or boolean values
+    http: true
+    ## Used to enable automatic TLS for ingress if http is false
+    tlsacme: false
+
+  keycloak:
+    ## Overrides gateway host configuration
+    url: ""
+    ## Configure default keycloak path
+    path: "/auth"
+    ## Configure default keycloak host template, i.e "activiti-keycloak.{{ .Values.global.gateway.domain }}"
+    host: "activiti-keycloak.{{ .Values.global.gateway.domain }}"
+
+    ## Configure default Keycloak realm
+    realm: "alfresco"
+    resource: "activiti"
+
+    ## Adds Keycloak extraEnv to deployments
+    extraEnv: ""
+
+  ## Configure pull secrets for all deployments
+  registryPullSecrets: []
+
+  ## Adds global extraEnv to deployments
+  # extraEnv: |
+  #   - name: "APP_CONFIG_AUTH_TYPE"
+  #     value: "OAUTH"
+
+replicaCount: 1
+
+registryPullSecrets: []
+
+image:
+  repository: quay.io/alfresco/alfresco-adf-app
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 80
+  internalPort: &appInternalPort 8080
+ingress:
+  enabled: true
+  hostName: null
+  # when set to false the ingress hostname value will not be set to default gateway one but left empty
+  defaultHostNameEnabled: true
+  path: /{{ .Chart.Name }}
+
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "X-Forwarded-For, X-Forwarded-Proto, X-Forwarded-Port, X-Forwarded-Prefix, Authorization, Content-Type"
+    nginx.ingress.kubernetes.io/x-forwarded-prefix: "true"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+probePath: /
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  successThreshold: 1
+  timeoutSeconds: 4
+  failureThreshold: 40
+readinessProbe:
+  initialDelaySeconds: 20
+  periodSeconds: 15
+  successThreshold: 1
+  timeoutSeconds: 3
+  failureThreshold: 5
+
+env:
+  APP_CONFIG_AUTH_TYPE: "OAUTH"
+
+networkpolicysetting:
+  enabled: false
+  ingress:
+    from:
+      appLabel: nginx-ingress
+    port: *appInternalPort
+    protocol: TCP
+  custom:
+    ingress:
+      from: | # multiline array of selectors
+      ports: | # multiline array of ports
+    egress:
+      to: | # multiline array of selectors
+      ports: | # multiline array of ports

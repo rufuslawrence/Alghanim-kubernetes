@@ -8,11 +8,11 @@ dependencies:
 - name: alfresco-infrastructure
   repository: https://kubernetes-charts.alfresco.com/stable
   version: 4.1.1
-- name: alfresco-digital-workspace
-  repository: https://kubernetes-charts.alfresco.com/stable
-  version: 2.2.1
 - name: alfresco-sync-service
   repository: https://kubernetes-charts.alfresco.com/stable
-  version: 3.0.2
-digest: sha256:60a7e0a76a0e1fb8c5c036773f613b8b4507e7c325867c0b8345df74285fd4ba
-generated: 2020-02-25T14:26:52.99964933Z
+  version: 3.0.5
+- name: alfresco-adf-app
+  repository: https://kubernetes-charts.alfresco.com/stable
+  version: 2.2.0
+digest: sha256:1adce6439402562a1fa0759380bfdcda6db2ec2c7e4e0139a87a64778902fb2f
+generated: 2020-07-08T12:01:34.898474668Z

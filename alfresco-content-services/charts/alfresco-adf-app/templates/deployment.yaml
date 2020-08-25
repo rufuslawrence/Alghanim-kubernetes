@@ -1,0 +1,73 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "alfresco-adf-app.fullname" . }}
+  labels:
+    app: {{ template "alfresco-adf-app.fullname" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "alfresco-adf-app.fullname" . }}
+        chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
+{{- if .Values.podAnnotations }}
+      annotations:
+{{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+{{- if include "common.registry-pull-secrets" . }}
+      imagePullSecrets:
+      {{- include "common.registry-pull-secrets" . | indent 6 }}
+{{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}{{ if .Values.image.tag }}:{{ .Values.image.tag }}{{- end}}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: API_URL
+              value: {{ include "common.gateway-url" $ | quote }}
+            - name: BASE_PATH
+              value: {{ include "common.ingress-path" . }}{{- if ne (include "common.ingress-path" .) "/" }}/{{- end }}
+            {{- if eq .Values.env.APP_CONFIG_AUTH_TYPE "OAUTH" }}
+            - name: APP_CONFIG_OAUTH2_HOST
+              value: {{ include "common.gateway-proto" . }}://{{ tpl (default (include "common.gateway-host" .) .Values.global.keycloak.host) . }}{{ include "common.keycloak-path" . }}/realms/{{ include "common.keycloak-realm" . }}
+            - name: APP_CONFIG_OAUTH2_CLIENTID
+              value: {{ include "common.keycloak-resource" . | quote }}
+            - name: APP_CONFIG_OAUTH2_REDIRECT_SILENT_IFRAME_URI
+              value: {{ include "common.gateway-proto" . }}://{{ include "common.ingress-host" . }}{{ include "common.ingress-path" . }}{{- if ne (include "common.ingress-path" .) "/" }}/{{- end }}assets/silent-refresh.html
+            - name: APP_CONFIG_OAUTH2_REDIRECT_LOGIN
+              value: {{ include "common.ingress-path" . }}{{- if ne (include "common.ingress-path" .) "/" }}/{{- end }}
+            - name: APP_CONFIG_OAUTH2_REDIRECT_LOGOUT
+              value: {{ include "common.ingress-path" . }}{{- if ne (include "common.ingress-path" .) "/" }}/{{- end }}
+            {{- end }}
+            {{- range $key, $val := .Values.env }}
+            - name: {{ $key | quote }}
+              value: {{ tpl $val $ | quote }}
+            {{- end }}
+{{ include "common.extra-env" . | indent 12 }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probePath }}
+              port: {{ .Values.service.internalPort | default .Values.service.port }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probePath }}
+              port: {{ .Values.service.internalPort | default .Values.service.port }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}

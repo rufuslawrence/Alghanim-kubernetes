@@ -4,7 +4,7 @@ metadata:
   name: {{ template "syncservice.fullname" . }}-ingress
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/rewrite-target: /alfresco
+    nginx.ingress.kubernetes.io/rewrite-target: /alfresco/$2
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "sync_affinity_route"
     nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
@@ -14,9 +14,14 @@ metadata:
 
 spec:
   rules:
+  {{- if .Values.ingress.hostName }}
+  - host: {{ tpl .Values.ingress.hostName $ }}
+    http:
+  {{- else }}
   - http:
+  {{- end }}
       paths:
-      - path: {{ .Values.syncservice.ingress.path }}
+      - path: {{ .Values.syncservice.ingress.path }}(/|$)(.*)
         backend:
           serviceName: {{ template "syncservice.fullname" . }}
           servicePort: {{ .Values.syncservice.service.externalPort }}

@@ -1,3 +1,0 @@
-You can access Alfresco Digital Workspace using:
-
-  {Your Ingress Address}/digital-workspace/

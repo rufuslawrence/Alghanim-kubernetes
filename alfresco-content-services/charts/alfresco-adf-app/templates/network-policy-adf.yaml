@@ -1,0 +1,43 @@
+{{- if .Values.networkpolicysetting.enabled }}
+# Allow ADF application communicate with other components
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ template "alfresco-adf-app.fullname" . }}
+  labels:
+    component: adfApplication
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ template "alfresco-adf-app.fullname" . }}
+  policyTypes:
+  {{- if or .Values.networkpolicysetting.ingress .Values.networkpolicysetting.custom.ingress }}
+  - Ingress
+  {{- end }}
+  {{- if or .Values.networkpolicysetting.egress .Values.networkpolicysetting.custom.egress }}
+  - Egress
+  {{- end }}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: {{ .Values.networkpolicysetting.ingress.from.appLabel }}
+    {{- with .Values.networkpolicysetting.custom.ingress.from }}
+{{ tpl . $ | indent 4 }}
+    {{- end }}
+    ports:
+    - protocol: {{ .Values.networkpolicysetting.ingress.protocol }}
+      port: {{ .Values.networkpolicysetting.ingress.port }}
+    {{- with .Values.networkpolicysetting.custom.ingress.ports }}
+{{ tpl . $ | indent 4 }}
+    {{- end }}
+    {{- with .Values.networkpolicysetting.custom.egress.to }}
+  egress:
+  - to:
+{{ tpl . $ | indent 4 }}
+    {{- end }}
+    {{- with .Values.networkpolicysetting.custom.egress.ports }}
+    ports:
+{{ tpl . $ | indent 4 }}
+    {{- end }}
+{{- end }}

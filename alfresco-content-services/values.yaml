@@ -10,13 +10,13 @@
 # Hence, setting up explicit Container memory and then assigning a percentage of it to the JVM for performance tuning.
 
 repository:
-  replicaCount: 1
+  replicaCount: 2
   strategy:
     type: Recreate
   image:
-    repository: acslatest
-    tag: "latest"
-    pullPolicy: IfNotPresent
+    repository: alfresco/alfresco-content-repository
+    tag: "6.2.2.1"
+    pullPolicy: Always
     internalPort: 8080
     hazelcastPort: 5701
   service:
@@ -29,22 +29,14 @@ repository:
     annotations: {}
       # nginx.ingress.kubernetes.io/enable-cors: "true"
   environment:
-    JAVA_OPTS: " 
-      -Ddb.driver=oracle.jdbc.OracleDriver
-      -Ddb.username=acsdev
-      -Ddb.password=acsdev
-      -Ddb.url=jdbc:oracle:thin:@aikwhov-oradev.alghanim.com:1521:alfdev1
-
-      -Dsolr.base.url=/solr
+    JAVA_OPTS: " -Dsolr.base.url=/solr
       -Dsolr.secureComms=none
       -Dindex.subsystem.name=solr6
       -Dalfresco.cluster.enabled=true
       -Ddeployment.method=HELM_CHART
 
       -Dtransform.service.enabled=true
-      -Dlocal.transform.service.enabled=true
-      -Dlegacy.transform.service.enabled=true
-      -Djava.net.preferIPv4Stack=true
+
       -Xms2000M -Xmx2000M"
   resources:
     requests:
@@ -69,11 +61,11 @@ apiexplorer:
     path: /api-explorer
 
 transformrouter:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: quay.io/alfresco/alfresco-transform-router
-    tag: "1.1.0"
-    pullPolicy: IfNotPresent
+    tag: "1.3.0"
+    pullPolicy: Always
     internalPort: 8095
   service:
     name: transform-router
@@ -93,11 +85,11 @@ transformrouter:
 # Declares the alfresco-pdf-renderer service used by the content repository
 # to transform pdf files
 pdfrenderer:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: alfresco/alfresco-pdf-renderer
-    tag: "2.1.0"
-    pullPolicy: IfNotPresent
+    tag: "2.3.1"
+    pullPolicy: Always
     internalPort: 8090
   service:
     name: pdfrenderer
@@ -126,11 +118,11 @@ pdfrenderer:
 # Declares the alfresco-imagemagick service used by the content repository
 # to transform image files
 imagemagick:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: alfresco/alfresco-imagemagick
-    tag: "2.1.0"
-    pullPolicy: IfNotPresent
+    tag: "2.3.1"
+    pullPolicy: Always
     internalPort: 8090
   service:
     name: imagemagick
@@ -159,11 +151,11 @@ imagemagick:
 # Declares the alfresco-libreoffice service used by the content repository
 # to transform office files
 libreoffice:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: alfresco/alfresco-libreoffice
-    tag: "2.1.0"
-    pullPolicy: IfNotPresent
+    tag: "2.3.1"
+    pullPolicy: Always
     internalPort: 8090
   service:
     name: libreoffice
@@ -192,11 +184,11 @@ libreoffice:
 # Declares the alfresco-tika service used by the content repository
 # to transform office files
 tika:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: alfresco/alfresco-tika
-    tag: "2.1.0"
-    pullPolicy: IfNotPresent
+    tag: "2.3.1"
+    pullPolicy: Always
     internalPort: 8090
   service:
     name: tika
@@ -225,11 +217,11 @@ tika:
 # Declares the alfresco-tika service used by the content repository
 # to transform office files
 transformmisc:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: alfresco/alfresco-transform-misc
-    tag: "2.1.0"
-    pullPolicy: IfNotPresent
+    tag: "2.3.1"
+    pullPolicy: Always
     internalPort: 8090
   service:
     name: transformmisc
@@ -256,11 +248,11 @@ transformmisc:
     maxTransformSeconds: 1800
 
 aiTransformer:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: quay.io/alfresco/alfresco-ai-docker-engine
-    tag: "1.1.1"
-    pullPolicy: IfNotPresent
+    tag: "1.2.0"
+    pullPolicy: Always
     internalPort: 8090
   service:
     name: ai-transformer
@@ -292,8 +284,8 @@ filestore:
   replicaCount: 1
   image:
     repository: alfresco/alfresco-shared-file-store
-    tag: "0.5.3"
-    pullPolicy: IfNotPresent
+    tag: "0.8.0"
+    pullPolicy: Always
     internalPort: 8099
   service:
     name: filestore
@@ -325,8 +317,8 @@ share:
   replicaCount: 1
   image:
     repository: alfresco/alfresco-share
-    tag: "6.2.0"
-    pullPolicy: IfNotPresent
+    tag: "6.2.2"
+    pullPolicy: Always
     internalPort: 8080
   service:
     name: share
@@ -337,11 +329,11 @@ share:
     annotations: {}
   resources:
     requests:
-      memory: "3000Mi"
+      memory: "2000Mi"
     limits:
-      memory: "3000Mi"
+      memory: "2000Mi"
   environment:
-    CATALINA_OPTS: " -Xms2000M -Xmx2000M"
+    CATALINA_OPTS: " -Xms1000M -Xmx1000M"
   readinessProbe:
     initialDelaySeconds: 60
     periodSeconds: 20
@@ -388,18 +380,22 @@ alfresco-infrastructure:
     enabled: true
   alfresco-identity-service:
     enabled: false
+  nginx-ingress:
+    enabled: false
 
 alfresco-search:
-  enabled: true  
+  enabled: true
 # If enabled is set to false, then external host and port need to point to the external instance of SOLR6, and in this case:
 # Note: Rule_05-network-policy-search will be disable.
 # Note: Rule_04-network-policy-repository internal trafic to SOLR6 instance will be disabled.
 # Note: ingress-repository will not block external trafic to */solr/*
-  #external:
+#  external:
     # Host dns/ip of the external solr6 instance.
-    #host: "127.0.0.1"
+#    host: "127.0.0.1"
     # Port of the external solr6 instance.
-    #port: "8983"
+#    port: "8983"
+  searchServicesImage:
+    tag: "1.4.2"
   repository: &repositoryHostPort
     # The value for "host" is the name of this chart
     host: alfresco-cs
@@ -410,13 +406,25 @@ alfresco-search:
     # Alfresco Search services endpoint ('/solr') is disabled by default
     # To enable it please see: acs-deployment configuration table](https://github.com/Alfresco/acs-deployment/tree/master/helm/alfresco-content-services#configuration)
     enabled: false
-  # registryPullSecrets: "quay-registry-secret"
 
 alfresco-digital-workspace:
-  enabled: false
+  enabled: true
+  nameOverride: "alfresco-dw"
   ingress:
     path: /workspace
-    applicationBasePath: ./
+    defaultHostNameEnabled: false
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "5g"
+      nginx.ingress.kubernetes.io/rewrite-target: "/"
+  image:
+    repository: quay.io/alfresco/alfresco-digital-workspace
+    tag: 1.6.0
+    pullPolicy: Always
+  env:
+    APP_CONFIG_AUTH_TYPE: "BASIC"
+    API_URL: "{protocol}//{hostname}{:port}"
+  networkpolicysetting:
+    enabled: true
 
 # choose if you want AI capabilities
 ai:
@@ -437,10 +445,10 @@ networkpolicysetting:
 # Also make sure that the container has the db driver in /usr/local/tomcat/lib since the current image only has the postgresql driver
 database:
   external: true
-  driver: oracle.jdbc.OracleDriver
-  user: acsdev
-  password: acsdev
-  url: jdbc:oracle:thin:@aikwhov-oradev.alghanim.com:1521:alfdev1
+  driver: com.mysql.jdbc.Driver
+  user: sNmxQKeoHT
+  password: nr9ZLlAtMp
+  url: jdbc:mysql://remotemysql.com:3306/sNmxQKeoHT
 
 # Defines the properties to be used for the required postgres DB
 # Note: the database (tables) information is also saved in the persistent volume claim
@@ -480,6 +488,76 @@ s3connector:
   #   encryption:
   #   awsKmsKeyId:
 
+##  For a full information of properties on the email configuration, please view: https://docs.alfresco.com/6.2/concepts/email.html
+email:
+  server:
+    enabled: false
+    port: 1125
+    domain:
+    enableTLS: true
+    hideTLS: false
+    requireTLS: false
+    auth:
+      enabled: true
+    connections:
+      max: 3
+    allowed:
+      senders: .*
+    blocked:
+      senders:
+  inbound:
+    enabled: false
+    unknownUser: anonymous
+    emailContributorsAuthority: EMAIL_CONTRIBUTORS
+  handler:
+    folder:
+      overwriteDuplicates: true
+  ssl:
+    secretName:
+
+mail:
+  host:
+  port:
+  protocol: smtps
+  encoding: UTF-8
+  username:
+  password:
+  from:
+    default:
+    enabled: false
+  smtp:
+    auth: true
+    debug: false
+    timeout: 30000
+    starttls:
+      enable: true
+  smtps:
+    auth: true
+    starttls:
+      enable: true
+  # DO NOT USE: It breaks repo pod with Error: Could not find or load main class SMTP Caused by: java.lang.ClassNotFoundException: SMTP
+  # testmessage:
+  #   send: false
+  #   subject: "Outbound SMTP"
+  #   text: "The Outbound SMTP email subsystem is working."
+  #   to:
+
+imap:
+  server:
+    enabled: false
+    host: "0.0.0.0"
+    port: 1143
+    imap:
+      enabled: true
+    imaps:
+      enabled: true
+      port: 1144
+  mail:
+    from:
+      default:
+    to:
+      default:
+
 # If there is a need to pull images from a private docker repo, a secret can be defined in helm and passed as an argument
 # to the install command:
 # e.g.: helm install alfresco-content-services --set global.alfrescoRegistryPullSecrets=quay-registry-secret
@@ -494,6 +572,8 @@ global:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
+  registryPullSecrets:
+    - quay-registry-secret
 
 alfresco-sync-service:
    enabled : true

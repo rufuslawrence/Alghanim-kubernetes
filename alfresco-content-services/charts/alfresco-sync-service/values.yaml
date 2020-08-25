@@ -11,8 +11,8 @@ global:
 syncservice:
   image:
     repository: quay.io/alfresco/service-sync
-    tag: 3.3.1
-    pullPolicy: IfNotPresent
+    tag: 3.3.3
+    pullPolicy: Always
     internalPort: 9090
   environment:
     JAVA_OPTS: >-
@@ -102,6 +102,8 @@ postgresql:
   postgresDatabase: syncservice-postgresql
   postgresConfig:
     max_connections: 450
+  service:
+    port: 5432
 
 # choose if you want network policy enabled
 networkpolicysetting:
