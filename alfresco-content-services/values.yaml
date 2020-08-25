@@ -14,8 +14,8 @@ repository:
   strategy:
     type: Recreate
   image:
-    repository: alfresco/alfresco-content-repository
-    tag: "6.2.0.2"
+    repository: acslatest
+    tag: "latest"
     pullPolicy: IfNotPresent
     internalPort: 8080
     hazelcastPort: 5701
@@ -38,7 +38,7 @@ repository:
       -Dtransform.service.enabled=true
       -Dlocal.transform.service.enabled=true
       -Dlegacy.transform.service.enabled=true
-
+      -Djava.net.preferIPv4Stack=true
       -Xms2000M -Xmx2000M"
   resources:
     requests:
@@ -331,11 +331,11 @@ share:
     annotations: {}
   resources:
     requests:
-      memory: "2000Mi"
+      memory: "3000Mi"
     limits:
-      memory: "2000Mi"
+      memory: "3000Mi"
   environment:
-    CATALINA_OPTS: " -Xms1000M -Xmx1000M"
+    CATALINA_OPTS: " -Xms2000M -Xmx2000M"
   readinessProbe:
     initialDelaySeconds: 60
     periodSeconds: 20
@@ -407,7 +407,7 @@ alfresco-search:
   # registryPullSecrets: "quay-registry-secret"
 
 alfresco-digital-workspace:
-  enabled: true
+  enabled: false
   ingress:
     path: /workspace
     applicationBasePath: ./
@@ -430,11 +430,11 @@ networkpolicysetting:
 # Note! : If you set database.external to true you will have to setup the driver, user, password and JdbcUrl
 # Also make sure that the container has the db driver in /usr/local/tomcat/lib since the current image only has the postgresql driver
 database:
-  external: false
-  #driver: org.postgresql.Driver
-  #user: alfresco
-  #password: admin
-  #url: jdbc:postgresql://18.217.217.24:5433/alfresco
+  external: true
+  driver: oracle.jdbc.OracleDriver
+  user: acsdev
+  password: acsdev
+  url: jdbc:oracle:thin:@aikwhov-oradev.alghanim.com:1521:alfdev1
 
 # Defines the properties to be used for the required postgres DB
 # Note: the database (tables) information is also saved in the persistent volume claim
@@ -442,7 +442,7 @@ postgresql:
   replicaCount: 1
   ## If true, install the postgresql chart alongside Alfresco Content Services.
   # Note: Set this to false if you use an external database.
-  enabled: true
+  enabled: false
   nameOverride: postgresql-acs
   imageTag: "11.4"
   postgresUser: alfresco
