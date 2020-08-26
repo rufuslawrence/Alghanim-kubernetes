@@ -1,5 +1,5 @@
 nodes:
-  - address: 3.22.79.137
+  - address: 3.129.247.133
     user: ubuntu
     role: [etcd,controlplane,worker]
     ssh_key_path: Ohio.pem
