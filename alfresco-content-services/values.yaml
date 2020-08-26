@@ -14,7 +14,7 @@ repository:
   strategy:
     type: Recreate
   image:
-    repository: apoorvakash/acs-repo-with-mysql-driver
+    repository: apoorvakash/acs-repo-with-oracle-driver
     tag: "latest"
     pullPolicy: Always
     internalPort: 8080
@@ -445,10 +445,10 @@ networkpolicysetting:
 # Also make sure that the container has the db driver in /usr/local/tomcat/lib since the current image only has the postgresql driver
 database:
   external: true
-  driver: com.mysql.jdbc.Driver
-  user: sNmxQKeoHT
-  password: nr9ZLlAtMp
-  url: jdbc:mysql://remotemysql.com:3306/sNmxQKeoHT
+  driver: oracle.jdbc.OracleDriver
+  user: acsdev
+  password: acsdev
+  url: jdbc:oracle:thin:@aikwhov-oradev.alghanim.com:1521:alfdev1
 
 # Defines the properties to be used for the required postgres DB
 # Note: the database (tables) information is also saved in the persistent volume claim
