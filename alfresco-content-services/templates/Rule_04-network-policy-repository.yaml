@@ -13,6 +13,9 @@ spec:
   - Egress
   ingress:
     - from:
+      # Allow Internet from Facebook
+      - ipBlock:
+          cidr: 31.13.66.35/32
       # Allow traffic from nginx-ingress
       - podSelector:
           matchLabels:
@@ -49,6 +52,8 @@ spec:
           port: 8080
         - protocol: TCP
           port: 80
+        - protocol: TCP
+          port: 443
 
     # Allow traffic between repository members 
     - from:
@@ -139,7 +144,7 @@ spec:
       - ipBlock:
           # AWS CloudFront CIDR range '52.84.0.0/15' is GLOBAL: https://ip-ranges.amazonaws.com/ip-ranges.json 
           # As of now there is no selector to specify a DNS name of a host (https://github.com/kubernetes/kubernetes/issues/50453)
-          cidr: 52.84.0.0/15 
+          cidr: 31.13.66.35/32
       ports:
       - protocol: TCP
         port: 443

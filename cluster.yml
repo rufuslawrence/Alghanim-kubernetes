@@ -1,8 +1,8 @@
 nodes:
-  - address: 3.129.247.133
+  - address: 3.15.213.6
     user: ubuntu
     role: [etcd,controlplane,worker]
-    ssh_key_path: Ohio.pem
+    ssh_key_path: /home/dell/Ohio.pem
 addon_job_timeout: 500
 services:
   kubelet:
